@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeBoncain Belle-Roche</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#eef2f4;--card:#fff;--ink:#1d2b36;--mut:#5f7080;--line:#d9e0e5;--acc:#1f6f8b;--accink:#fff;--gold:#8a5a00;--goldbg:#fdf0cf;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0f161c;--card:#172029;--ink:#e8eef2;--mut:#93a5b3;--line:#27333d;--acc:#5bb4d1;--accink:#0b1a22;--gold:#f2c14e;--goldbg:#3a2f12;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,.brand{font-family:Georgia,"Times New Roman",serif}
+nav{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:6}
+.bar{max-width:1100px;margin:auto;padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;font-size:20px;margin-right:auto}
+.who{color:var(--mut);font-size:14px}
+button{font:inherit;border:0;border-radius:8px;padding:9px 16px;background:var(--acc);color:var(--accink);cursor:pointer;font-weight:600}
+button.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.on{background:var(--ink);color:var(--bg)}
+button.d{background:#b42318;color:#fff}
+button:disabled{opacity:.6;cursor:wait}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.hero{position:relative;height:250px;overflow:hidden;background:#1b2f48}
+.hero svg{position:absolute;inset:0;width:100%;height:100%}
+.hero .t{position:relative;max-width:1100px;margin:auto;padding:44px 16px 0;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.45)}
+.hero h1{margin:0;font-size:clamp(28px,5vw,46px);line-height:1.1}
+.hero p{margin:10px 0 0;font-size:18px;max-width:30ch}
+main{max-width:1100px;margin:auto;padding:22px 16px 60px}
+input,select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+label{display:block;font-weight:600;margin:14px 0 4px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.ad{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.ad:hover{border-color:var(--acc)}
+.ad img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--line)}
+.ad .b{padding:12px;display:flex;flex-direction:column;gap:4px}
+.prix{font-weight:800;font-size:19px;font-family:Georgia,serif}
+.mut{color:var(--mut);font-size:14px}
+.gar{display:inline-block;background:var(--goldbg);color:var(--gold);font-size:13px;font-weight:700;padding:2px 9px;border-radius:99px;width:fit-content}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;max-width:640px;margin:auto}
+.hidden{display:none!important}
+.picker{position:relative}
+.res{position:absolute;left:0;right:0;top:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;max-height:300px;overflow:auto;z-index:4;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.res div{padding:9px 12px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.ic{width:36px;height:36px;object-fit:contain;border-radius:6px;flex:none}
+.res div:hover{background:var(--bg)}
+.sel{margin-top:8px;padding:10px;border:1px solid var(--acc);border-radius:8px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#prev{max-width:100%;max-height:220px;margin-top:8px;border-radius:8px}
+dialog{border:0;border-radius:12px;padding:0;max-width:560px;width:92%;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog img{width:100%;max-height:340px;object-fit:cover;display:block}
+dialog .b{padding:18px}
+.msg{margin-top:12px;font-weight:600}
+@media(max-width:600px){.filters,.row2{grid-template-columns:1fr}.hero{height:220px}}
+</style>
+</head>
+<body>
+<nav><div class="bar">
+  <div class="brand">Le Boncain</div>
+  <button id="tE" class="on">Explorer</button>
+  <button id="tP" class="g">Poster une annonce</button>
+  <button id="tA" class="g">Se connecter</button>
+  <span id="who" class="who hidden"></span><button id="out" class="g hidden">Déconnexion</button>
+</div></nav>
+
+<header class="hero">
+  <svg viewBox="0 0 1200 250" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2f48"/><stop offset=".6" stop-color="#4a6f8f"/><stop offset="1" stop-color="#f0a867"/></linearGradient></defs>
+    <rect width="1200" height="250" fill="url(#sky)"/>
+    <circle cx="930" cy="150" r="34" fill="#ffd9a0" opacity=".9"/>
+    <path d="M0 190 Q200 140 420 175 T820 165 T1200 170 V250 H0Z" fill="#3b5a66"/>
+    <g fill="#24323f">
+      <rect x="640" y="120" width="260" height="70"/>
+      <rect x="650" y="90" width="40" height="40"/><polygon points="644,92 670,56 696,92"/>
+      <rect x="840" y="80" width="46" height="50"/><polygon points="834,82 863,40 892,82"/>
+      <rect x="740" y="100" width="34" height="30"/><polygon points="735,102 757,72 779,102"/>
+      <rect x="470" y="150" width="60" height="40"/><polygon points="464,152 500,124 536,152"/>
+      <rect x="545" y="158" width="46" height="32"/><polygon points="540,160 568,138 596,160"/>
+    </g>
+    <g fill="#f5c977"><rect x="663" y="104" width="6" height="10"/><rect x="855" y="96" width="6" height="12"/><rect x="752" y="112" width="5" height="9"/><rect x="494" y="162" width="5" height="9"/></g>
+    <path d="M0 205 Q300 190 600 205 T1200 200 V250 H0Z" fill="#2c6f86"/>
+    <path d="M0 222 Q300 210 600 224 T1200 218" stroke="#9fd3e3" stroke-width="2" fill="none" opacity=".6"/>
+    <path d="M0 250 V232 Q300 226 600 236 T1200 230 V250Z" fill="#17323d"/>
+  </svg>
+  <div class="t"><h1>Le Boncain de Belle-Roche</h1><p>Les petites annonces de Belle-Roche-Sur-Amboise</p></div>
+</header>
+
+<main>
+<section id="vE">
+  <div class="filters">
+    <input id="q" type="search" placeholder="Rechercher une annonce, un item, un ID…" aria-label="Recherche">
+    <select id="fc" aria-label="Catégorie"><option value="">Toutes les catégories</option></select>
+    <select id="fs" aria-label="Tri"><option value="new">Plus récentes</option><option value="asc">Prix croissant</option><option value="desc">Prix décroissant</option></select>
+  </div>
+  <div id="list" class="grid"></div>
+  <p id="empty" class="mut hidden">Aucune annonce pour le moment. Connecte-toi et poste la première.</p>
+</section>
+
+<section id="vA" class="hidden">
+  <div class="panel">
+    <h2 style="margin-top:0">Mon compte</h2>
+    <p class="mut">Ton compte utilise ton nom et prénom RP. Choisis un mot de passe que tu retiendras.</p>
+    <div class="row2">
+      <div><label for="nom">Nom RP</label><input id="nom" autocomplete="family-name"></div>
+      <div><label for="pre">Prénom RP</label><input id="pre" autocomplete="given-name"></div>
+    </div>
+    <label for="pw">Mot de passe (6 caractères minimum)</label><input id="pw" type="password" autocomplete="current-password">
+    <p style="display:flex;gap:8px;flex-wrap:wrap"><button id="login">Se connecter</button><button id="signup" class="g">Créer mon compte</button></p>
+    <div id="amsg" class="msg" role="status"></div>
+  </div>
+</section>
+
+<section id="vP" class="hidden">
+  <div class="panel">
+    <h2 style="margin-top:0">Poster une annonce</h2>
+    <div id="needLogin" class="hidden"><p>Tu dois être connecté pour poster une annonce.</p><button id="goA">Se connecter</button></div>
+    <div id="form">
+      <label for="is">Item à vendre</label>
+      <div class="picker"><input id="is" type="search" placeholder="Tape le nom ou l'ID de l'item…" autocomplete="off"><div id="res" class="res hidden"></div></div>
+      <div id="sel" class="sel hidden"></div>
+      <label for="cat">Catégorie</label>
+      <select id="cat"><option>Meubles et déco</option><option>Nourriture</option><option>Ressources</option><option>Armes et équipement</option><option>Véhicules</option><option>Électronique</option><option>Cosmétiques</option><option>Autre</option></select>
+      <label for="titre">Titre</label><input id="titre" maxlength="80">
+      <div class="row2">
+        <div><label for="prix">Prix (€)</label><input id="prix" type="number" min="0" step="1"></div>
+        <div><label for="qte">Quantité</label><input id="qte" type="number" min="1" value="1"></div>
+      </div>
+      <label for="desc">Description</label><textarea id="desc" rows="3"></textarea>
+      <label for="cont">Contact (Discord ou téléphone RP)</label><input id="cont">
+      <label for="photo">Photo de l'item (obligatoire)</label>
+      <input id="photo" type="file" accept="image/*"><img id="prev" class="hidden" alt="Aperçu de la photo">
+      <p><span class="gar">✔ Garanti par les fondateurs</span></p>
+      <button id="send">Publier l'annonce</button>
+      <div id="msg" class="msg" role="status"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<dialog id="dlg"><div id="dc"></div><div class="b" style="display:flex;gap:8px;justify-content:flex-end"><button id="del" class="d hidden">Supprimer mon annonce</button><button class="g" id="cl">Fermer</button></div></dialog>
+
+<script>
+const SUPABASE_URL = "https://cwtugafodalnlrjassjo.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8HESuJWvZDMz5URfYpqscA_NKep1Tcm";
+const SHEET_ID = "1kdvg91jcMozdSUnP6n0ng_0_lgwTXt30CSv6uXjRT98";
+// Onglets du Sheet à charger (par nom d'onglet)
+const TABS = [{ sheet: "ID_Item", type: "Objet" }, { sheet: "ID_Vehicle", type: "Véhicule" }, { sheet: "Cosmétiques", type: "Cosmétique" }];
+const WEBHOOK = ""; // optionnel : webhook Discord pour annoncer les nouvelles annonces
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const mail = (n, p) => `${slug(n)}.${slug(p)}@gmail.com`;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let items = [], ads = [], chosen = null, user = null, cur = null;
+
+// ---- Navigation ----
+function show(v) {
+  ["E", "P", "A"].forEach(k => { $("v" + k).classList.toggle("hidden", k !== v); $("t" + k).className = k === v ? "on" : "g"; });
+}
+$("tE").onclick = () => show("E"); $("tP").onclick = () => show("P"); $("tA").onclick = () => show("A"); $("goA").onclick = () => show("A");
+
+// ---- Comptes ----
+function refreshUser() {
+  const m = user?.user_metadata || {};
+  $("who").textContent = user ? `${m.prenom || ""} ${m.nom || ""}` : "";
+  $("who").classList.toggle("hidden", !user); $("out").classList.toggle("hidden", !user); $("tA").classList.toggle("hidden", !!user);
+  $("form").classList.toggle("hidden", !user); $("needLogin").classList.toggle("hidden", !!user);
+}
+sb.auth.onAuthStateChange((_, s) => { user = s?.user || null; refreshUser(); });
+sb.auth.getSession().then(r => { user = r.data.session?.user || null; refreshUser(); });
+function creds() {
+  const nom = $("nom").value.trim(), pre = $("pre").value.trim(), pw = $("pw").value;
+  if (!slug(nom) || !slug(pre)) { $("amsg").textContent = "Renseigne ton nom et ton prénom RP."; return null; }
+  if (pw.length < 6) { $("amsg").textContent = "Mot de passe : 6 caractères minimum."; return null; }
+  return { nom, pre, pw, email: mail(nom, pre) };
+}
+$("signup").onclick = async () => {
+  const c = creds(); if (!c) return; $("amsg").textContent = "Création du compte…";
+  const r = await sb.auth.signUp({ email: c.email, password: c.pw, options: { data: { nom: c.nom, prenom: c.pre } } });
+  if (r.error) return $("amsg").textContent = /already|registered/i.test(r.error.message) ? "Ce compte existe déjà, clique sur Se connecter." : "Erreur : " + r.error.message;
+  if (!r.data.session) return $("amsg").textContent = "Compte créé, mais la confirmation par mail est encore active dans Supabase.";
+  $("amsg").textContent = ""; show("E");
+};
+$("login").onclick = async () => {
+  const c = creds(); if (!c) return; $("amsg").textContent = "Connexion…";
+  const r = await sb.auth.signInWithPassword({ email: c.email, password: c.pw });
+  if (r.error) return $("amsg").textContent = "Nom, prénom ou mot de passe incorrect.";
+  $("amsg").textContent = ""; show("E");
+};
+$("out").onclick = async () => { await sb.auth.signOut(); show("E"); };
+
+// ---- Catalogue depuis le Google Sheet ----
+async function loadCatalog() {
+  items = [];
+  for (const tab of TABS) {
+    try {
+      const r = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab.sheet)}`);
+      const t = await r.text();
+      const j = JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1));
+      j.table.rows.forEach(row => {
+        const c = (row.c || []).map(x => x && x.v != null ? String(x.v).replace(/\s+/g, " ").trim() : "");
+        const first = c.find(Boolean) || "", id = first.match(/^\d+/);
+        if (!id) return;
+        const nom = c.slice(c.indexOf(first) + 1).find(x => x && !/^(\d+|∝|oui|non|\/\/.*|\?+|déprécié|les icônes arrivent)$/i.test(x));
+        if (nom && !/\/\/|obsolète/i.test(nom)) items.push({ id: id[0], nom, cat: tab.type });
+      });
+    } catch (e) { $("msg").textContent = "Catalogue indisponible : vérifie que le Sheet est partagé avec le lien."; }
+  }
+}
+function showRes() {
+  const q = $("is").value.trim().toLowerCase();
+  if (!q) return $("res").classList.add("hidden");
+  const m = items.filter(i => i.nom.toLowerCase().includes(q) || i.id === q || i.id.startsWith(q)).slice(0, 30);
+  $("res").innerHTML = m.length ? m.map(i => `<div data-k="${items.indexOf(i)}"><img class="ic" src="icones/${esc(i.id)}.png" alt="" onerror="this.remove()"><b>${esc(i.nom)}</b> <span class="mut">ID ${esc(i.id)} · ${esc(i.cat)}</span></div>`).join("") : `<div class="mut">Aucun item trouvé</div>`;
+  $("res").classList.remove("hidden");
+}
+$("is").addEventListener("input", showRes);
+$("res").addEventListener("click", e => {
+  const d = e.target.closest("[data-k]"); if (!d) return;
+  chosen = items[+d.dataset.k];
+  $("sel").innerHTML = `<img class="ic" src="icones/${esc(chosen.id)}.png" alt="" onerror="this.remove()"><b>${esc(chosen.nom)}</b> <span class="mut">· ID ${esc(chosen.id)}</span>`;
+  $("sel").classList.remove("hidden"); $("res").classList.add("hidden"); $("is").value = chosen.nom;
+  if (!$("titre").value) $("titre").value = chosen.nom;
+  if (chosen.cat === "Véhicule") $("cat").value = "Véhicules"; if (chosen.cat === "Cosmétique") $("cat").value = "Cosmétiques";
+});
+$("photo").addEventListener("change", e => { const f = e.target.files[0]; if (f) { $("prev").src = URL.createObjectURL(f); $("prev").classList.remove("hidden"); } });
+
+// ---- Publier ----
+$("send").onclick = async () => {
+  const f = $("photo").files[0], m = $("msg");
+  if (!user) return m.textContent = "Connecte-toi d'abord.";
+  if (!chosen) return m.textContent = "Choisis un item dans la recherche.";
+  if (!$("titre").value.trim() || $("prix").value === "" || !$("cont").value.trim()) return m.textContent = "Titre, prix et contact sont obligatoires.";
+  if (!f) return m.textContent = "La photo est obligatoire.";
+  if (f.size > 5e6) return m.textContent = "Photo trop lourde (5 Mo max).";
+  m.textContent = "Envoi en cours…"; $("send").disabled = true;
+  try {
+    const path = `${user.id}/${Date.now()}-${f.name.replace(/[^\w.]/g, "_")}`;
+    const up = await sb.storage.from("annonces").upload(path, f);
+    if (up.error) throw up.error;
+    const photo_url = sb.storage.from("annonces").getPublicUrl(path).data.publicUrl;
+    const md = user.user_metadata || {};
+    const row = { user_id: user.id, item_id: chosen.id, item_nom: chosen.nom, categorie: $("cat").value, titre: $("titre").value.trim(), description: $("desc").value.trim(),
+      prix: +$("prix").value, quantite: +$("qte").value || 1, vendeur: `${md.prenom || ""} ${md.nom || ""}`.trim(), contact: $("cont").value.trim(), photo_url };
+    const ins = await sb.from("annonces").insert(row);
+    if (ins.error) throw ins.error;
+    if (WEBHOOK) fetch(WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ embeds: [{ title: row.titre, description: `${row.prix} € · x${row.quantite}\nItem : ${row.item_nom} (ID ${row.item_id})\nVendeur : ${row.vendeur}`, image: { url: photo_url }, color: 0x1f6f8b }] }) }).catch(() => {});
+    m.textContent = "";
+    ["titre", "prix", "desc", "cont", "is", "photo"].forEach(k => $(k).value = ""); $("qte").value = 1;
+    $("sel").classList.add("hidden"); $("prev").classList.add("hidden"); chosen = null;
+    await loadAds(); show("E");
+  } catch (e) { m.textContent = "Erreur : " + (e.message || e); }
+  $("send").disabled = false;
+};
+
+// ---- Explorer ----
+async function loadAds() {
+  const r = await sb.from("annonces").select("*").order("created_at", { ascending: false });
+  ads = r.data || [];
+  const cats = [...new Set(ads.map(a => a.categorie).filter(Boolean))].sort(), keep = $("fc").value;
+  $("fc").innerHTML = `<option value="">Toutes les catégories</option>` + cats.map(c => `<option>${esc(c)}</option>`).join(""); $("fc").value = keep;
+  render();
+}
+function render() {
+  const q = $("q").value.toLowerCase(), c = $("fc").value, s = $("fs").value;
+  const l = ads.filter(a => (!c || a.categorie === c) && (!q || [a.titre, a.item_nom, a.item_id, a.description, a.vendeur].join(" ").toLowerCase().includes(q)));
+  if (s === "asc") l.sort((a, b) => a.prix - b.prix); if (s === "desc") l.sort((a, b) => b.prix - a.prix);
+  $("list").innerHTML = l.map(a => `<article class="ad" data-id="${a.id}" tabindex="0"><img src="${esc(a.photo_url)}" alt="${esc(a.item_nom)}" loading="lazy"><div class="b"><span class="prix">${esc(a.prix)} €</span><b>${esc(a.titre)}</b><span class="mut">x${esc(a.quantite)} · ${esc(a.vendeur)}</span><span class="gar">✔ Garanti par les fondateurs</span></div></article>`).join("");
+  $("empty").classList.toggle("hidden", l.length > 0);
+}
+["q", "fc", "fs"].forEach(k => $(k).addEventListener("input", render));
+const openAd = e => {
+  const d = e.target.closest(".ad"); if (!d) return;
+  cur = ads.find(x => x.id == d.dataset.id);
+  $("dc").innerHTML = `<img src="${esc(cur.photo_url)}" alt=""><div class="b"><span class="gar">✔ Garanti par les fondateurs</span><h2 style="margin:8px 0">${esc(cur.titre)}</h2><div class="prix">${esc(cur.prix)} € <span class="mut">· x${esc(cur.quantite)}</span></div><p>${esc(cur.description)}</p><p class="mut">Item : ${esc(cur.item_nom)} · ID ${esc(cur.item_id)} · ${esc(cur.categorie)}<br>Vendeur : <b>${esc(cur.vendeur)}</b> · Contact : <b>${esc(cur.contact)}</b></p></div>`;
+  $("del").classList.toggle("hidden", !(user && cur.user_id === user.id));
+  $("dlg").showModal();
+};
+$("list").addEventListener("click", openAd);
+$("list").addEventListener("keydown", e => { if (e.key === "Enter") openAd(e); });
+$("cl").onclick = () => $("dlg").close();
+$("del").onclick = async () => {
+  if (!confirm("Supprimer cette annonce ?")) return;
+  const r = await sb.from("annonces").delete().eq("id", cur.id);
+  if (!r.error) { $("dlg").close(); loadAds(); }
+};
+
+loadCatalog(); loadAds();
+</script>
+</body>
+</html>
