@@ -115,7 +115,6 @@ dialog .b{padding:18px}
     <label for="pw">Mot de passe (6 caractères minimum)</label><input id="pw" type="password" autocomplete="current-password">
     <p style="display:flex;gap:8px;flex-wrap:wrap"><button id="login">Se connecter</button><button id="signup" class="g">Créer mon compte</button></p>
     <div id="amsg" class="msg" role="status"></div>
-    <div id="adm" class="hidden"><label for="ac">Code admin</label><div class="row2" style="grid-template-columns:1fr auto"><input id="ac" type="password" autocomplete="off"><button id="av" class="g">Valider</button></div><div id="acm" class="msg" role="status"></div></div>
   </div>
 </section>
 
@@ -183,7 +182,7 @@ function refreshUser() {
   $("who").textContent = user ? `${m.prenom || ""} ${m.nom || ""}` : "";
   $("who").classList.toggle("hidden", !user); $("out").classList.toggle("hidden", !user); $("tA").classList.toggle("hidden", !!user);
   $("form").classList.toggle("hidden", !user); $("needLogin").classList.toggle("hidden", !!user);
-  $("tM").classList.toggle("hidden", !user); $("tD").classList.toggle("hidden", !me?.admin); $("adm").classList.toggle("hidden", !user || !!me?.admin);
+  $("tM").classList.toggle("hidden", !user); $("tD").classList.toggle("hidden", !me?.admin);
 }
 sb.auth.onAuthStateChange((_, s) => { user = s?.user || null; refreshUser(); loadMe(); });
 sb.auth.getSession().then(r => { user = r.data.session?.user || null; refreshUser(); loadMe(); });
@@ -325,7 +324,8 @@ async function loadMe() {
 async function showProfile(id) {
   const r = await sb.rpc("profil", { uid: id }), p = r.data; if (!p) return;
   $("pc").innerHTML = `<h2 style="margin:0">${esc(p.prenom)} ${esc(p.nom)}</h2><p>${p.admin ? '<span class="gar">Admin</span> ' : ""}<span class="gar" style="background:var(--bg);color:var(--ink)">${leTitre(p)}</span></p>
-  <div class="stats"><div><div class="prix">${p.ventes}</div><span class="mut">ventes</span></div><div><div class="prix">${p.recettes} €</div><span class="mut">recettes</span></div><div><div class="prix">${p.actives}</div><span class="mut">annonces actives</span></div><div><div class="prix">${p.supprimes}</div><span class="mut">supprimées pour non-conformité</span></div></div>`;
+  <div class="stats"><div><div class="prix">${p.ventes}</div><span class="mut">ventes</span></div><div><div class="prix">${p.recettes} €</div><span class="mut">recettes</span></div><div><div class="prix">${p.actives}</div><span class="mut">annonces actives</span></div><div><div class="prix">${p.supprimes}</div><span class="mut">supprimées pour non-conformité</span></div></div>
+  ${id === user?.id && !me?.admin ? '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0 0"><label for="ac">Code admin</label><div class="row2" style="grid-template-columns:1fr auto"><input id="ac" type="password" autocomplete="off"><button id="av" class="g">Valider</button></div><div id="acm" class="msg" role="status"></div>' : ""}`;
   $("dlgP").showModal();
 }
 $("who").onclick = () => user && showProfile(user.id);
@@ -337,10 +337,11 @@ $("sold").onclick = async () => {
 };
 
 // ---- Admin ----
-$("av").onclick = async () => {
+$("pc").addEventListener("click", async e => {
+  if (e.target.id !== "av") return;
   const r = await sb.rpc("devenir_admin", { code: $("ac").value.trim() }); $("ac").value = "";
-  if (r.data === true) { await loadMe(); $("acm").textContent = "Accès admin activé."; } else $("acm").textContent = "Code incorrect (5 essais maximum).";
-};
+  if (r.data === true) { await loadMe(); $("acm").textContent = "Accès admin activé. L'onglet Admin est disponible."; } else $("acm").textContent = "Code incorrect (5 essais maximum).";
+});
 $("tD").onclick = () => { show("D"); renderAdmin(); };
 function renderAdmin() {
   const l = ads.filter(a => !a.vendu).sort((a, b) => a.certifie - b.certifie);
